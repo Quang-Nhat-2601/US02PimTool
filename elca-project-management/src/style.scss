@@ -1,0 +1,239 @@
+@import 'variables';
+@import 'reset';
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid $border-color;
+    height: 60px;
+
+    .logo {
+        display: flex;
+        flex-direction: row;
+        margin-left: 90px;
+
+        img {
+            width: 50px;
+            height: 50px;
+            margin-right: 20px;
+        }
+
+        .title {
+            color: $text-color;
+            font-size: 12px;
+            font-weight: 700;
+        }
+    }
+
+    .function-control {
+        display: flex;
+        margin-right: 90px;
+        width: 400px;
+
+        li {
+            list-style-type: none;
+            color: $link-color;
+            flex: 1;
+
+            p {
+                margin: 0;
+
+                a {
+                    text-decoration: none;
+                    color: $link-color;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        #language-options {
+            flex: 2;
+        }
+
+    }
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+
+    color: $text-color;
+
+    .content {
+        display: flex;
+
+        .left-content {
+            flex: 1;
+            border-right: 1px solid $border-color;
+
+            .title {
+                font-size: 24px;
+                font-weight: 600;
+                color: $primary-text-color;
+                margin-bottom: 40px;
+                margin-top: 44px;
+            }
+
+            ul {
+                list-style-type: none;
+                text-transform: capitalize;
+                padding-left: 0;
+
+                li {
+                    line-height: 2;
+
+                    a {
+                        text-decoration: none;
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+
+        .right-content {
+            flex: 7;
+            margin-left: 50px;
+            margin-top: 40px;
+
+            .title {
+                font-weight: 600;
+                font-size: 18px;
+                padding-bottom: 16px;
+                margin-bottom: 24px;
+                border-bottom: 1px solid $border-color;
+            }
+
+            .search-bar {
+                display: flex;
+                height: 36px;
+                font-size: 14px;
+
+                input {
+                    border: 2px solid #ddd;
+                    width: 32%;
+                    margin-right: 20px;
+                    padding: 8px 12px;
+                    border-radius: $border-radius;
+                }
+
+                .project-status {
+                    width: 17%;
+                    margin-right: 45px;
+                    border: 2px solid #ddd;
+                    border-radius: $border-radius;
+                    padding-left: 12px;
+                    color: $text-color;
+                }
+
+                .search-button {
+                    width: 15%;
+                    margin: 0;
+
+                    a {
+                        display: block;
+                        line-height: 36px;
+                        text-decoration: none;
+                        background-image: linear-gradient(rgb(91, 129, 255), rgb(41, 26, 252));
+                        ;
+                        color: #fff;
+                        text-align: center;
+                        border-radius: $border-radius;
+                        font-weight: 600;
+                    }
+                }
+
+                .reset-button {
+                    width: 8%;
+                    margin: 0;
+                    margin-left: 60px;
+
+                    a {
+                        display: block;
+                        line-height: 36px;
+                        text-decoration: none;
+                        color: $primary-text-color;
+                        font-weight: 500;
+                    }
+                }
+
+            }
+
+            #myTable_wrapper {
+                .dt-layout-row {
+                    display: flex;
+                }
+
+                .dt-layout-full {
+                    width: 100%;
+                }
+
+                #myTable {
+                    margin-top: 50px;
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+
+                    th,
+                    td {
+                        border: 1px solid $border-color;
+                        box-sizing: border-box;
+                        background-color: #fff;
+                    }
+
+                    thead {
+                        th {
+                            color: #777;
+                            font-weight: 500;
+                            height: 32px;
+                            text-align: left;
+
+                            span {
+                                background-color: #fff;
+                            }
+                        }
+                    }
+
+                    tbody {
+                        tr td:first-child {
+                            width: 3%;
+                        }
+
+                        tr td:nth-child(2) {
+                            width: 9%;
+                            text-align: right;
+                        }
+
+                        tr td:nth-child(3) {
+                            width: 32%;
+                        }
+
+                        tr td:nth-child(4) {
+                            width: 11%;
+                        }
+
+                        tr td:nth-child(5) {
+                            width: 22%;
+                        }
+
+                        tr td:nth-child(6) {
+                            width: 10%;
+                        }
+
+                        td {
+                            font-weight: 700;
+                            padding: 10px;
+
+                            img {
+                                width: 20px;
+                                height: 20px;
+                                margin: 0 auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

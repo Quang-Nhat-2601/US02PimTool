@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Information Management</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="./elca_elcalogo" alt="logo images">
+
+            <div class="title">
+                <h1>Project Information Management</h1>
+            </div>
+        </div>
+
+        <ul class="function-control">
+            <li id="language-options">
+                <p><a href="#">EN</a> | <a href="#">FR</a></p>
+            </li>
+
+            <li id="helps">
+                <p><a href="#">Help</a></p>
+            </li>
+
+            <li id="logout">
+                <p><a href="#">Logout</a></p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <div class="left-content">
+                <p class="title">Projects List</p>
+
+                <ul>
+                    <li><a href="#">new</a></li>
+                    <li><a href="#">Project</a></li>
+                    <li><a href="#">Customer</a></li>
+                    <li><a href="#">Supplier</a></li>
+                </ul>
+            </div>
+
+            <div class="right-content">
+                <p class="title">Projects List</p>
+                <div class="search-bar">
+                    <input type="text" placeholder="Project number, name, customer name">
+                    <select class="project-status">
+                        <option value="">Project Status</option>
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="finished">Finished</option>
+                    </select>
+                    <p class="search-button"><a href="">Search Project</a></p>
+                    <p class="reset-button"><a href="">Reset Search</a></p>
+                </div>
+                <!-- <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Number</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Customer</th>
+                            <th>Start Date</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectList">
+
+                    </tbody>
+                </table> -->
+            
+                <table id="myTable" width="100%"></table>
+            </div>
+        </div>
+    </div>
+
+    <script src="./elca_projectmanagementscript"></script>
+</body>
+
+</html> 
