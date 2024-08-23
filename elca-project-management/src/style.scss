@@ -105,64 +105,67 @@
                 border-bottom: 1px solid $border-color;
             }
 
-            .search-bar {
-                display: flex;
-                height: 36px;
-                font-size: 14px;
-
-                input {
-                    border: 2px solid #ddd;
-                    width: 32%;
-                    margin-right: 20px;
-                    padding: 8px 12px;
-                    border-radius: $border-radius;
-                }
-
-                .project-status {
-                    width: 17%;
-                    margin-right: 45px;
-                    border: 2px solid #ddd;
-                    border-radius: $border-radius;
-                    padding-left: 12px;
-                    color: $text-color;
-                }
-
-                .search-button {
-                    width: 15%;
-                    margin: 0;
-
-                    a {
-                        display: block;
-                        line-height: 36px;
-                        text-decoration: none;
-                        background-image: linear-gradient(rgb(91, 129, 255), rgb(41, 26, 252));
-                        ;
-                        color: #fff;
-                        text-align: center;
-                        border-radius: $border-radius;
-                        font-weight: 600;
-                    }
-                }
-
-                .reset-button {
-                    width: 8%;
-                    margin: 0;
-                    margin-left: 60px;
-
-                    a {
-                        display: block;
-                        line-height: 36px;
-                        text-decoration: none;
-                        color: $primary-text-color;
-                        font-weight: 500;
-                    }
-                }
-
-            }
-
             #myTable_wrapper {
                 .dt-layout-row {
                     display: flex;
+
+                    .dt-layout-cell.dt-layout-end {
+                        width: 100%;
+                    }
+
+                    .dt-search {
+                        display: flex;
+                        height: 36px;
+                        font-size: 14px;
+        
+                        input {
+                            border: 2px solid #ddd;
+                            width: 32%;
+                            margin-right: 20px;
+                            padding: 8px 12px;
+                            border-radius: $border-radius;
+                        }
+        
+                        .project-status {
+                            width: 17%;
+                            margin-right: 45px;
+                            border: 2px solid #ddd;
+                            border-radius: $border-radius;
+                            padding-left: 12px;
+                            color: $text-color;
+                        }
+        
+                        .search-button {
+                            width: 15%;
+                            margin: 0;
+        
+                            a {
+                                display: block;
+                                line-height: 36px;
+                                text-decoration: none;
+                                background-image: linear-gradient(rgb(91, 129, 255), rgb(41, 26, 252));
+                                ;
+                                color: #fff;
+                                text-align: center;
+                                border-radius: $border-radius;
+                                font-weight: 600;
+                            }
+                        }
+        
+                        .reset-button {
+                            width: 8%;
+                            margin: 0;
+                            margin-left: 60px;
+        
+                            a {
+                                display: block;
+                                line-height: 36px;
+                                text-decoration: none;
+                                color: $primary-text-color;
+                                font-weight: 500;
+                            }
+                        }
+                    }
                 }
 
                 .dt-layout-full {
@@ -206,7 +209,7 @@
                         }
 
                         tr td:nth-child(3) {
-                            width: 32%;
+                            width: 40%;
                         }
 
                         tr td:nth-child(4) {
@@ -226,8 +229,8 @@
                             padding: 10px;
 
                             img {
-                                width: 20px;
-                                height: 20px;
+                                width: 16px;
+                                height: 16px;
                                 margin: 0 auto;
                             }
                         }

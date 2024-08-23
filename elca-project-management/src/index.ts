@@ -77,6 +77,17 @@ class ProjectManagement {
     //     this.projectTable.search('').columns().search('').draw();
     // }
 
+    private createSearchBar() {
+        $('.dt-search').append(`<select class="project-status">
+                        <option value="">Project Status</option>
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="finished">Finished</option>
+                    </select>
+                    <p class="search-button"><a href="">Search Project</a></p>
+                    <p class="reset-button"><a href="">Reset Search</a></p>`)
+    }
+
     private renderProjects() {
         console.log("Rendering projects...");
 
@@ -110,16 +121,28 @@ class ProjectManagement {
                     { data: 'elca_customer', title: 'Customer' },
                     { data: 'elca_startdate', title: 'Start Date' },
                     {
-                        title: 'Action',
+                        title: 'Delete',
                         render: function (data, type, row) {
                             return `<img src="./elca_garbageicon" alt="Delete" class="delete-icon" data-projectid="${row.elca_projectid}">`;
                         }
                     }
                 ],
                 order: [[1, 'asc']],
-                pageLength: 5, 
-                lengthChange: false
+                pageLength: 5,
+                lengthChange: false,
+                columnDefs: [
+                    {
+                        searchable: false,
+                        targets: [3, 5]
+                    }
+                ],
+                language: {
+                    searchPlaceholder: 'Project number, name, customer name',
+                    search: ""
+                }
             });
+
+            this.createSearchBar();
         }
         console.log("Projects rendered to table");
     }
