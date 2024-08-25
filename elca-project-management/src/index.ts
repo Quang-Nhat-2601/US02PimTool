@@ -79,6 +79,39 @@ class ProjectManagement {
         );
     }
 
+    private setupSelectAllCheckbox() {
+        const table = this.projectTable;
+
+        // Handle click on "Select all" checkbox
+        $('#select-all-checkbox').on('click', function(this: HTMLInputElement) {
+            const isChecked = this.checked;
+            
+            $('.chkbx').prop('checked', isChecked);
+            
+            $(this).trigger('blur');
+        });
+
+        $('#myTable tbody').on('change', 'input[type="checkbox"]', function(this: HTMLInputElement) {
+            // If any checkbox is unchecked, uncheck "Select all" checkbox
+            if (!this.checked) {
+                const selectAllCheckbox = $('#select-all-checkbox').get(0);
+                if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
+                    selectAllCheckbox.checked = false;
+                }
+            } else {
+                // If all checkboxes are checked, check "Select all" checkbox
+                const allCheckboxes = table.$('input[type="checkbox"]').get();
+                const allChecked = allCheckboxes.every((checkbox: { checked: any; }) => 
+                    checkbox instanceof HTMLInputElement && checkbox.checked
+                );
+                const selectAllCheckbox = $('#select-all-checkbox').get(0);
+                if (selectAllCheckbox instanceof HTMLInputElement) {
+                    selectAllCheckbox.checked = allChecked;
+                }
+            }
+        });
+    }
+
     private showSelectionStatus() {
         const numOfCheckedCB: number = $('input[type="checkbox"]:checked').length;
 
@@ -232,6 +265,7 @@ class ProjectManagement {
                 columns: [
                     {
                         data: null,
+                        title: '<input type="checkbox" id="select-all-checkbox">',
                         defaultContent: '<input type="checkbox" class="chkbx">',
                         orderable: false
                     },
@@ -257,7 +291,7 @@ class ProjectManagement {
                 pagingType: "simple_numbers"
             });
         }
-
+        this.setupSelectAllCheckbox();
         this.initialSelectionStatus();
         console.log("Projects rendered to table");
     }
