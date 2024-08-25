@@ -48,6 +48,18 @@
 
             <div class="right-content">
                 <p class="title">Projects List</p>
+                <div class="search-bar">
+                    <input type="text" name="Search" id="searchfield" placeholder="Project number, name, customer name">
+                    <select class="project-status">
+                        <option value="">Project Status</option>
+                        <option value="New">New</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Finished">Finished</option>
+                    </select>
+                    <p class="search-button"><a href="#" id="searchButton">Search Project</a></p>
+                    <p class="reset-button"><a href="#" id="resetButton">Reset Search</a></p>
+                </div>
+
                 <table id="myTable" width="100%"></table>
             </div>
         </div>
@@ -56,4 +68,4 @@
     <script src="./elca_projectmanagementscript"></script>
 </body>
 
-</html> 
+</html>
