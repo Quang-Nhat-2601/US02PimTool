@@ -83,15 +83,15 @@ class ProjectManagement {
         const table = this.projectTable;
 
         // Handle click on "Select all" checkbox
-        $('#select-all-checkbox').on('click', function(this: HTMLInputElement) {
+        $('#select-all-checkbox').on('click', function (this: HTMLInputElement) {
             const isChecked = this.checked;
-            
+
             $('.chkbx').prop('checked', isChecked);
-            
+
             $(this).trigger('blur');
         });
 
-        $('#myTable tbody').on('change', 'input[type="checkbox"]', function(this: HTMLInputElement) {
+        $('#myTable tbody').on('change', 'input[type="checkbox"]', function (this: HTMLInputElement) {
             // If any checkbox is unchecked, uncheck "Select all" checkbox
             if (!this.checked) {
                 const selectAllCheckbox = $('#select-all-checkbox').get(0);
@@ -101,7 +101,7 @@ class ProjectManagement {
             } else {
                 // If all checkboxes are checked, check "Select all" checkbox
                 const allCheckboxes = table.$('input[type="checkbox"]').get();
-                const allChecked = allCheckboxes.every((checkbox: { checked: any; }) => 
+                const allChecked = allCheckboxes.every((checkbox: { checked: any; }) =>
                     checkbox instanceof HTMLInputElement && checkbox.checked
                 );
                 const selectAllCheckbox = $('#select-all-checkbox').get(0);
@@ -130,21 +130,30 @@ class ProjectManagement {
         $('#resetButton').on('click', () => this.resetSearch());
         $('#myTable').on('click', '.delete-icon', (e) => this.handleDelete(e));
         $('#myTable').on('click', '.chkbx', () => this.showSelectionStatus());
+        $(document).on('click', '#select-all-checkbox', (e) => this.showSelectionStatus());
         $(document).on('click', '#selection-status .delete-icon', (e) => this.handleDelete(e));
         $('#myTable').on('click', '.project-link', (e) => {
             e.preventDefault();
             const projectId = $(e.target).data('projectid');
-            var entityFormOptions: Xrm.Navigation.EntityFormOptions = {};
-            entityFormOptions["entityName"] = "elca_project";
-            entityFormOptions["entityId"] = projectId;
-            
-            parent.Xrm.Navigation.openForm(entityFormOptions).then(
-                function (success) {
-                    console.log(success);
-                },
-                function (error) {
-                    console.log(error);
-                });
+            const entityName = "elca_project";
+            // Tạo một object chứa các parameters
+            var data = {
+                entity: entityName,
+                entityId: projectId
+            };
+
+            // Chuyển đổi object thành chuỗi JSON
+            var dataParam = JSON.stringify(data);
+
+            var windowOptions = {
+                openInNewWindow: true,
+                height: window.outerHeight,
+                width: window.outerWidth,
+                positionBelow: false,
+                positionRight: false
+            };
+
+            parent.Xrm.Navigation.openWebResource("elca_projectformpage", windowOptions, dataParam);
         });
     }
 
@@ -220,7 +229,6 @@ class ProjectManagement {
     private handleSearch() {
         const searchTerm = ($('#searchfield') as JQuery<HTMLInputElement>).val()?.toString().toLowerCase() || '';
         const statusFilter = $('.project-status').find(":selected").text();
-        console.log(`status filter ${statusFilter}`);
         const filteredProjects = this.projects.filter(project => {
             const matchesSearch =
                 project.elca_projectnumber.toLowerCase().includes(searchTerm) ||

@@ -1,0 +1,51 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid $border-color;
+    height: 60px;
+
+    .logo {
+        display: flex;
+        flex-direction: row;
+        margin-left: 90px;
+
+        img {
+            width: 50px;
+            height: 50px;
+            margin-right: 20px;
+        }
+
+        .title {
+            color: $text-color;
+            font-size: 12px;
+            font-weight: 700;
+        }
+    }
+
+    .function-control {
+        display: flex;
+        margin-right: 90px;
+        width: 400px;
+
+        li {
+            list-style-type: none;
+            color: $link-color;
+            flex: 1;
+
+            p {
+                margin: 0;
+
+                a {
+                    text-decoration: none;
+                    color: $link-color;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        #language-options {
+            flex: 2;
+        }
+
+    }
+}

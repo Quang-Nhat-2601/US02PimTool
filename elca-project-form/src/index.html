@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Information Management</title>
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="./elca_elcalogo" alt="logo images">
+
+            <div class="title">
+                <h1>Project Information Management</h1>
+            </div>
+        </div>
+
+        <ul class="function-control">
+            <li id="language-options">
+                <p><a href="#">EN</a> | <a href="#">FR</a></p>
+            </li>
+
+            <li id="helps">
+                <p><a href="#">Help</a></p>
+            </li>
+
+            <li id="logout">
+                <p><a href="#">Logout</a></p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <div class="left-content">
+                <p class="title">Projects List</p>
+
+                <ul>
+                    <li><a href="#">new</a></li>
+                    <li><a href="#">Project</a></li>
+                    <li><a href="#">Customer</a></li>
+                    <li><a href="#">Supplier</a></li>
+                </ul>
+            </div>
+
+            <div class="right-content">
+                <p class="title">New Project</p>
+
+                <form class="entity-form">
+                    <div class="field-entity">
+                        <label for="elca_projectnumber">Project Number</label>
+                        <input type="text" name="elca_projectnumber" id="project_number_tf" required>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_name">Project name</label>
+                        <input type="text" name="elca_name" id="project_name_tf" required>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_customer">Customer</label>
+                        <input type="text" name="elca_customer" id="project_customer_tf" required>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_projectgroupid">Group</label>
+                        <select name="elca_projectgroupid" id="project_group_select">
+                            <option value="New">New</option>
+                            <option value="New">New</option>
+                            <option value="New">New</option>
+                        </select>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_members">Members</label>
+                        <input type="text" name="elca_members" id="project_member_tf" required>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_projectstatus">Status</label>
+                        <select name="elca_projectstatus" id="project_group_select">
+                            <option value="new">New</option>
+                            <option value="planned">Planned</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="finished">Finished</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <div class="field-entity">
+                        <label for="elca_projectnumber">Project Number</label>
+                        <input type="text" name="elca_projectnumber" id="project_number_tf">
+                    </div>
+
+                    <div class="project-date-container">
+                        <div class="date-container">
+                            <label for="elca_startdate">Start date</label>
+                            <input type="date" name="elca_startdate" id="elca_startdate" required placeholder="">
+                        </div>
+                        <div class="date-container">
+                            <label for="elca_enddate">End date</label>
+                            <input type="date" name="elca_enddate" id="elca_enddate" required placeholder="">
+                        </div>
+                    </div>
+                </form>
+
+                <div class="btn-container">
+                    <a href="#" id="create-btn" class="btn">Create Project</a>
+                    <a href="#" id="cancel-btn" class="btn">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./elca_projectcustomformscript"></script>
+</body>
+
+</html>
