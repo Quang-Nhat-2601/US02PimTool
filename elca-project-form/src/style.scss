@@ -30,7 +30,7 @@
                 margin-top: 44px;
             }
 
-            ul li:first-child .new-page{
+            ul li:first-child .new-page {
                 color: $primary-text-color;
                 font-size: 20px;
             }
@@ -64,67 +64,61 @@
                 margin-bottom: 24px;
                 border-bottom: 1px solid $border-color;
             }
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                align-items: center;
+                row-gap: 38px;
+                column-gap: 20px;
+                padding-right: 22%;
+                padding-top: 30px;
+                padding-left: 5%;
 
-            .entity-form {
-                .field-entity {
-                    display: flex;
-                    margin-left: 6%;
-                    margin-right: 25%;
-                    margin-bottom: 38px;
+                label {
+                    text-align: left;
+                    padding-right: 10px;
+                    font-weight: 500;
+                    font-family: $font-family;
+                    font-size: 14px;
+                }
 
-                    label {
-                        flex: 1;
-                        font-weight: 500;
-                        font-family: $font-family;
-                        font-size: 14px;
-                    }
+                input,
+                select {
+                    padding: 5px;
+                    height: 30px;
+                    border-radius: $border-radius;
+                    border: 1px solid $border-color;
+                }
 
+                select {
+                    width: 220px;
+                }
+
+                .date-container {
                     input {
-                        flex: 3;
-                        height: 30px;
-                        border-radius: $border-radius;
-                        border: 1px solid $border-color;
+                        width: 200px;
                     }
-                }
-
-                .project-date-container {
-                    display: flex;
-                    margin-left: 6%;
-                    margin-right: 25%;
-
-                    .date-container {
-                        flex: 1;
-                        display: flex;
-
-                        label {
-                            font-weight: 500;
-                            font-family: $font-family;
-                            font-size: 14px;
-                            margin-right: 181px;
-                        }
-
-                        input {
-                            height: 30px;
-                            border-radius: $border-radius;
-                            border: 1px solid $border-color;
-                            width: 220px;
-                            height: 30px;
-                        }
-                    }
-                }
-
-                .project-date-container .date-container:last-child {
-                    justify-content: end;
-
                     label {
-                        margin-right: 90px;
+                        margin-left: 60px;
+                        margin-right: 30px;
                     }
+                    input[type=date]:required:invalid::-webkit-datetime-edit {
+                        color: transparent;
+                    }
+                    input[type=date]:focus::-webkit-datetime-edit {
+                        color: $text-color !important;
+                    }
+                }
+
+                .date-container input:last-child {
+                    float: right;
                 }
             }
 
             .btn-container {
                 width: 100%;
                 margin-top: 5%;
+                padding-right: 22%;
 
                 .btn {
                     float: right;
@@ -147,7 +141,6 @@
                 #create-btn {
                     background-image: linear-gradient(rgb(91, 129, 255), rgb(41, 26, 252));
                     color: #fff;
-                    margin-right: 25%;
                     margin-left: 6%;
                 }
             }
