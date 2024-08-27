@@ -2,11 +2,8 @@
 @import 'reset';
 @import 'header';
 
-//general
-.delete-icon {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+input, select {
+    background-color: #fff;
 }
 
 .container {
