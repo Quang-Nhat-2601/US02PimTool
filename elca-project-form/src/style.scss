@@ -30,6 +30,11 @@
                 margin-top: 44px;
             }
 
+            ul li:first-child .new-page{
+                color: $primary-text-color;
+                font-size: 20px;
+            }
+
             ul {
                 list-style-type: none;
                 text-transform: capitalize;

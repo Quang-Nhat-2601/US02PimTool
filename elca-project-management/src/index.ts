@@ -132,47 +132,9 @@ class ProjectManagement {
         $(document).on('click', '#select-all-checkbox', (e) => this.showSelectionStatus());
         $(document).on('click', '#selection-status .delete-icon', (e) => this.handleDelete(e));
         $('#myTable').on('click', '.project-link', (e) => {
-            e.preventDefault();
             const projectId = $(e.target).data('projectid');
             const entityName = "elca_project";
-            // Tạo một object chứa các parameters
-            // var data = {
-            //     entity: entityName,
-            //     entityId: projectId
-            // };
-
-            // // Chuyển đổi object thành chuỗi JSON
-            // var dataParam = JSON.stringify(data);
-
-            // var windowOptions = {
-            //     openInNewWindow: true,
-            //     height: window.outerHeight,
-            //     width: window.outerWidth,
-            //     positionBelow: false,
-            //     positionRight: false
-            // };
-
-            // parent.Xrm.Navigation.openWebResource("elca_projectformpage", windowOptions, dataParam);
-
-            // let pageInput:Xrm.Navigation.PageInputHtmlWebResource = {
-            //     pageType: "webresource",
-            //     webresourceName: "elca_projectformpage",
-            //     data: dataParam
-            // };
-
-            // var navigationOptions :Xrm.Navigation.NavigationOptions= {
-            //     target: 1,
-            // };
-
-            // parent.Xrm.Navigation.navigateTo(pageInput, navigationOptions).then(
-            //     () => {
-            //         console.log("Navigatied");
-            //     },
-            //     (error) => {
-            //         console.log("Navigate failed {0}", error);
-            //     }
-            // );
-
+            e.preventDefault();            
             var entityFormOptions : Xrm.Navigation.EntityFormOptions = {};
             entityFormOptions["entityName"] = entityName;
             entityFormOptions["entityId"] = projectId;
@@ -185,6 +147,29 @@ class ProjectManagement {
                 function (error) {
                     console.log(error);
                 });
+        });
+
+        $(".new-page").on('click', (e) => {
+            e.preventDefault();
+            // Chuyển đổi object thành chuỗi JSON
+
+            let pageInput:Xrm.Navigation.PageInputHtmlWebResource = {
+                pageType: "webresource",
+                webresourceName: "elca_projectformpage"
+            };
+
+            var navigationOptions :Xrm.Navigation.NavigationOptions= {
+                target: 1,
+            };
+
+            parent.Xrm.Navigation.navigateTo(pageInput, navigationOptions).then(
+                () => {
+                    console.log("Navigatied");
+                },
+                (error) => {
+                    console.log("Navigate failed {0}", error);
+                }
+            );
         });
     }
 

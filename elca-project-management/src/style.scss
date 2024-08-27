@@ -30,6 +30,11 @@
                 margin-top: 44px;
             }
 
+            ul li:first-child .new-page{
+                color: $primary-text-color;
+                font-size: 20px;
+            }
+
             ul {
                 list-style-type: none;
                 text-transform: capitalize;
@@ -188,6 +193,12 @@
                         tr td:nth-child(2) {
                             width: 9%;
                             text-align: right;
+
+                            .project-link {
+                                text-decoration: none;
+                                color: $text-color;
+                                background-color: #fff;
+                            }
                         }
 
                         tr td:nth-child(3) {
@@ -213,6 +224,7 @@
                         td {
                             font-weight: 700;
                             padding: 10px;
+                            background-color: #fff;
 
                             .delete-icon {
                                 margin: 0 auto;
