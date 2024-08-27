@@ -113,10 +113,9 @@ class ProjectManagement {
     }
 
     private showSelectionStatus() {
-        const numOfCheckedCB: number = $('input[type="checkbox"]:checked').length;
+        const numOfCheckedCB: number = $('input.chkbx[type="checkbox"]:checked').length;
 
         $("#selection-status #selected-count").text(numOfCheckedCB.toString());
-
         if (numOfCheckedCB > 1) {
             $("#selection-status").show();
         } else {
@@ -125,7 +124,7 @@ class ProjectManagement {
     }
 
     private setupEventListeners() {
-        console.log("Start add listener...")
+        console.log("Start add listener")
         $('#searchButton').on('click', () => this.handleSearch());
         $('#resetButton').on('click', () => this.resetSearch());
         $('#myTable').on('click', '.delete-icon', (e) => this.handleDelete(e));
@@ -137,23 +136,55 @@ class ProjectManagement {
             const projectId = $(e.target).data('projectid');
             const entityName = "elca_project";
             // Tạo một object chứa các parameters
-            var data = {
-                entity: entityName,
-                entityId: projectId
-            };
+            // var data = {
+            //     entity: entityName,
+            //     entityId: projectId
+            // };
 
-            // Chuyển đổi object thành chuỗi JSON
-            var dataParam = JSON.stringify(data);
+            // // Chuyển đổi object thành chuỗi JSON
+            // var dataParam = JSON.stringify(data);
 
-            var windowOptions = {
-                openInNewWindow: true,
-                height: window.outerHeight,
-                width: window.outerWidth,
-                positionBelow: false,
-                positionRight: false
-            };
+            // var windowOptions = {
+            //     openInNewWindow: true,
+            //     height: window.outerHeight,
+            //     width: window.outerWidth,
+            //     positionBelow: false,
+            //     positionRight: false
+            // };
 
-            parent.Xrm.Navigation.openWebResource("elca_projectformpage", windowOptions, dataParam);
+            // parent.Xrm.Navigation.openWebResource("elca_projectformpage", windowOptions, dataParam);
+
+            // let pageInput:Xrm.Navigation.PageInputHtmlWebResource = {
+            //     pageType: "webresource",
+            //     webresourceName: "elca_projectformpage",
+            //     data: dataParam
+            // };
+
+            // var navigationOptions :Xrm.Navigation.NavigationOptions= {
+            //     target: 1,
+            // };
+
+            // parent.Xrm.Navigation.navigateTo(pageInput, navigationOptions).then(
+            //     () => {
+            //         console.log("Navigatied");
+            //     },
+            //     (error) => {
+            //         console.log("Navigate failed {0}", error);
+            //     }
+            // );
+
+            var entityFormOptions : Xrm.Navigation.EntityFormOptions = {};
+            entityFormOptions["entityName"] = entityName;
+            entityFormOptions["entityId"] = projectId;
+
+            // Open the form.
+            parent.Xrm.Navigation.openForm(entityFormOptions).then(
+                function (success) {
+                    console.log(success);
+                },
+                function (error) {
+                    console.log(error);
+                });
         });
     }
 
@@ -229,25 +260,67 @@ class ProjectManagement {
     private handleSearch() {
         const searchTerm = ($('#searchfield') as JQuery<HTMLInputElement>).val()?.toString().toLowerCase() || '';
         const statusFilter = $('.project-status').find(":selected").text();
-        const filteredProjects = this.projects.filter(project => {
-            const matchesSearch =
-                project.elca_projectnumber.toLowerCase().includes(searchTerm) ||
-                project.elca_name.toLowerCase().includes(searchTerm) ||
-                project.elca_customer.toLowerCase().includes(searchTerm);
 
-            const matchesStatus =
-                statusFilter === this.projectStatusString ||
-                project.elca_projectstatus === statusFilter;
+        let filter = '';
+        const filterParts = [];
 
-            return matchesSearch && matchesStatus;
-        });
+        if (searchTerm) {
+            const searchFilter = `(
+                                    contains(elca_projectnumber, '${searchTerm}') 
+                                or 
+                                    contains(elca_name, '${searchTerm}') 
+                                or 
+                                    contains(elca_customer, '${searchTerm}')
+                                )`;
+            filterParts.push(searchFilter);
+        }
 
-        this.renderProjects(filteredProjects);
+        if (statusFilter !== this.projectStatusString) {
+            const statusValue = this.mapStatusToNumber[statusFilter];
+            filterParts.push(`elca_projectstatus eq ${statusValue}`);
+        }
+
+        if (filterParts.length > 0) {
+            filter = `$filter=${filterParts.join(' and ')}`;
+        }
+
+        const query = `?$select=elca_projectid,elca_projectnumber,elca_name,elca_customer,elca_projectstatus,elca_startdate&${filter}`;
+
+        parent.Xrm.WebApi.retrieveMultipleRecords("elca_project", query).then(
+            (result) => {
+                const filteredProjects = result.entities.map(entity => ({
+                    elca_projectid: entity.elca_projectid,
+                    elca_projectnumber: entity.elca_projectnumber,
+                    elca_name: entity.elca_name,
+                    elca_customer: entity.elca_customer,
+                    elca_projectstatus: this.mapNumberToStatus[entity.elca_projectstatus.toString()],
+                    elca_startdate: new Date(entity.elca_startdate).toLocaleDateString(),
+                    elca_projectgroupid: entity.elca_projectgroupid,
+                    elca_enddate: entity.elca_enddate,
+                    ownerid: entity.ownerid,
+                    elca_members: entity.elca_members
+                }));
+                this.renderProjects(filteredProjects);
+                $("#selection-status").hide();
+                const selectAllCheckbox = $('#select-all-checkbox').get(0);
+                if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
+                    selectAllCheckbox.checked = false;
+                }
+            },
+            (error) => {
+                console.error("Error searching projects:", error.message);
+            }
+        );
     }
 
     private resetSearch() {
         ($('#searchfield') as JQuery<HTMLInputElement>).val('');
         $('.project-status').val('');
+        $("#selection-status").hide();
+        const selectAllCheckbox = $('#select-all-checkbox').get(0);
+        if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
+            selectAllCheckbox.checked = false;
+        }
         this.renderProjects(this.projects);
     }
 
@@ -305,14 +378,18 @@ class ProjectManagement {
     }
 
     private initialSelectionStatus() {
-        $(".dt-layout-full").append(`
+        const isExist = $("#selection-status").length;
+        console.log("Is seelction status exists: {0}", isExist);
+        if (!isExist) {
+            $(".dt-layout-full").append(`
             <div id="selection-status">
                 <span id="count-text"><span id="selected-count">0</span> items selected</span>
                 <span id="delete-text">delete selected items <img src="./elca_garbageicon" alt="Delete" class="delete-icon" data-projectid="allselected"></span>
             </div>
-        `);
+            `);
 
-        $("#selection-status").hide();
+            $("#selection-status").hide();
+        }
     }
 }
 
