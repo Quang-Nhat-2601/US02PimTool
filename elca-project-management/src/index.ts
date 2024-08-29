@@ -48,7 +48,7 @@ class ProjectManagement {
             lengthChange: false,
             searching: false,
             info: false,
-            pagingType: "simple_numbers"
+            pagingType: "simple_numbers",
         });
     }
 
@@ -239,7 +239,6 @@ class ProjectManagement {
         } else {
             this.deleteSelectedProjects();
         }
-        window.location.reload()
     }
 
     private deleteSpecificProject(projectId: string) {
@@ -281,6 +280,9 @@ class ProjectManagement {
         Promise.all(projectIds.map(id => this.deleteProjectFromAPI(id)))
             .then(() => {
                 console.log(`${projectIds.length} project(s) deleted successfully`);
+                this.removeDeletedProjectsFromTable(projectIds);
+                this.projectTable.draw(false); // Redraw the table without changing the current page
+                this.showSelectionStatus(); // Update selection status
             })
             .catch(error => {
                 console.error("Error deleting project(s):", error);
@@ -302,6 +304,16 @@ class ProjectManagement {
         });
     }
 
+    private removeDeletedProjectsFromTable(projectIds: string[]) {
+        projectIds.forEach(id => {
+            const index = this.projects.findIndex(p => p.elca_projectid === id);
+            if (index > -1) {
+                this.projects.splice(index, 1);
+            }
+            this.projectTable.row(`[data-projectid="${id}"]`).remove();
+        });
+    }
+
     private handleSearch() {
         this.projectTable.ajax.reload();
     }
@@ -314,7 +326,6 @@ class ProjectManagement {
 
     private initialSelectionStatus() {
         const isExist = $("#selection-status").length;
-        console.log("Is seelction status exists: {0}", isExist);
         if (!isExist) {
             $(".dt-layout-full").append(`
             <div id="selection-status">

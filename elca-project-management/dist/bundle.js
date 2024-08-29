@@ -26624,7 +26624,7 @@ var ProjectManagement = /** @class */ (function () {
             lengthChange: false,
             searching: false,
             info: false,
-            pagingType: "simple_numbers"
+            pagingType: "simple_numbers",
         });
     };
     ProjectManagement.prototype.loadProjects = function (data, callback) {
@@ -26769,7 +26769,6 @@ var ProjectManagement = /** @class */ (function () {
         else {
             this.deleteSelectedProjects();
         }
-        window.location.reload();
     };
     ProjectManagement.prototype.deleteSpecificProject = function (projectId) {
         var project = this.projects.find(function (p) { return p.elca_projectid === projectId; });
@@ -26812,6 +26811,9 @@ var ProjectManagement = /** @class */ (function () {
         Promise.all(projectIds.map(function (id) { return _this.deleteProjectFromAPI(id); }))
             .then(function () {
             console.log("".concat(projectIds.length, " project(s) deleted successfully"));
+            _this.removeDeletedProjectsFromTable(projectIds);
+            _this.projectTable.draw(false); // Redraw the table without changing the current page
+            _this.showSelectionStatus(); // Update selection status
         })
             .catch(function (error) {
             console.error("Error deleting project(s):", error);
@@ -26828,6 +26830,16 @@ var ProjectManagement = /** @class */ (function () {
             });
         });
     };
+    ProjectManagement.prototype.removeDeletedProjectsFromTable = function (projectIds) {
+        var _this = this;
+        projectIds.forEach(function (id) {
+            var index = _this.projects.findIndex(function (p) { return p.elca_projectid === id; });
+            if (index > -1) {
+                _this.projects.splice(index, 1);
+            }
+            _this.projectTable.row("[data-projectid=\"".concat(id, "\"]")).remove();
+        });
+    };
     ProjectManagement.prototype.handleSearch = function () {
         this.projectTable.ajax.reload();
     };
@@ -26838,7 +26850,6 @@ var ProjectManagement = /** @class */ (function () {
     };
     ProjectManagement.prototype.initialSelectionStatus = function () {
         var isExist = jquery_default()("#selection-status").length;
-        console.log("Is seelction status exists: {0}", isExist);
         if (!isExist) {
             jquery_default()(".dt-layout-full").append("\n            <div id=\"selection-status\">\n                <span id=\"count-text\"><span id=\"selected-count\">0</span> items selected</span>\n                <span id=\"delete-text\">delete selected items <img src=\"./elca_garbageicon\" alt=\"Delete\" class=\"delete-icon\" data-projectid=\"allselected\"></span>\n            </div>\n            ");
             jquery_default()("#selection-status").hide();
