@@ -12,82 +12,168 @@ class ProjectManagement {
     private isCheckAll: boolean = false;
 
     constructor() {
-        this.loadProjects();
+        this.initializeDataTable();
         this.setupEventListeners();
     }
 
-    private loadProjects() {
-        const fetchXml = `?fetchXml=<fetch mapping='logical'>
-            <entity name='elca_project'>
-            <attribute name='elca_projectid' />
-            <attribute name='elca_projectnumber' />
-            <attribute name='elca_name' />
-            <attribute name='elca_customer' />
-            <attribute name='elca_projectstatus' />
-            <attribute name='elca_startdate' />
-            </entity></fetch>`;
+    private initializeDataTable() {
+        this.projectTable = new DataTable("#myTable", {
+            serverSide: true,
+            ajax: (data, callback, settings) => {
+                this.loadProjects(data, callback);
+            },
+            columns: [
+                {
+                    data: null,
+                    title: '<input type="checkbox" id="select-all-checkbox">',
+                    defaultContent: '<input type="checkbox" class="chkbx">',
+                    orderable: false
+                },
+                { data: 'elca_projectnumber', title: 'Number' },
+                { data: 'elca_name', title: 'Name' },
+                { data: 'elca_projectstatus', title: 'Status' },
+                { data: 'elca_customer', title: 'Customer' },
+                { data: 'elca_startdate', title: 'Start Date' },
+                {
+                    title: 'Delete',
+                    render: (data, type, row) => {
+                        if (row.elca_projectstatus === 'New')
+                            return `<img src="./elca_garbageicon" alt="Delete" class="delete-icon" data-projectid="${row.elca_projectid}">`;
+                        return '';
+                    }
+                }
+            ],
+            order: [[1, 'asc']],
+            pageLength: 20,
+            lengthChange: false,
+            searching: false,
+            info: false,
+            pagingType: "simple_numbers"
+        });
+    }
 
-        parent.Xrm.WebApi.retrieveMultipleRecords("elca_project", fetchXml).then(
-            (result) => {
-                this.projects = result.entities.map(entity => ({
+    private loadProjects(data: any, callback: (settings: any) => void) {
+        const pageSize = data.length;
+        const pageNumber = (data.start / data.length) + 1;
+        const searchTerm = ($('#searchfield') as JQuery<HTMLInputElement>).val()?.toString() || '';
+        const statusFilter = $('.project-status').find(":selected").text();
+
+        let fetchXml = `<fetch mapping='logical' count='${pageSize}' page='${pageNumber}'>
+            <entity name='elca_project'>
+                <attribute name='elca_projectid' />
+                <attribute name='elca_projectnumber' />
+                <attribute name='elca_name' />
+                <attribute name='elca_customer' />
+                <attribute name='elca_projectstatus' />
+                <attribute name='elca_startdate' />
+                <order attribute='elca_projectnumber' descending='false' />
+            </entity>
+        </fetch>`;
+
+        if (searchTerm) {
+            fetchXml = fetchXml.replace("<entity name='elca_project'>", `<entity name='elca_project'>
+                <filter type='or'>
+                    <condition attribute='elca_projectnumber' operator='like' value='%${searchTerm}%' />
+                    <condition attribute='elca_name' operator='like' value='%${searchTerm}%' />
+                    <condition attribute='elca_customer' operator='like' value='%${searchTerm}%' />
+                </filter>`);
+        }
+
+        if (statusFilter !== this.projectStatusString) {
+            const statusValue = mapStatusToNumber[statusFilter];
+            fetchXml = fetchXml.replace("<entity name='elca_project'>", `<entity name='elca_project'>
+                <filter>
+                    <condition attribute='elca_projectstatus' operator='eq' value='${statusValue}' />
+                </filter>`);
+        }
+
+        const options = `?fetchXml=${encodeURIComponent(fetchXml)}&$count=true`;
+
+        parent.Xrm.WebApi.retrieveMultipleRecords("elca_project", options).then(
+            (result: any) => {
+                const projects = result.entities.map((entity: any) => ({
                     elca_projectid: entity.elca_projectid,
-                    elca_projectnumber: entity.elca_projectnumber,
-                    elca_name: entity.elca_name,
-                    elca_customer: entity.elca_customer,
+                    elca_projectnumber: `<a href="#" class="project-link" data-projectid="${entity.elca_projectid}">${entity.elca_projectnumber}</a>`,
+                    elca_name: entity.elca_name || '',
+                    elca_customer: entity.elca_customer || '',
                     elca_projectstatus: mapNumberToStatus[entity.elca_projectstatus.toString()],
                     elca_startdate: formatDate(entity.elca_startdate),
-                    elca_projectgroupid: entity.elca_projectgroupid,
-                    elca_enddate: entity.elca_enddate,
-                    ownerid: entity.ownerid,
-                    elca_members: entity.elca_members
                 }));
-                this.renderProjects();
+
+                this.projects = projects;
+
+                callback({
+                    draw: data.draw,
+                    recordsTotal: result.entities.length,
+                    recordsFiltered: result.entities.length,
+                    data: projects
+                });
+
+                // Handle Check Action for checboxes
+                this.addCheckboxHandling();
+
+                this.initialSelectionStatus();
             },
             (error) => {
                 console.error("Error loading projects:", error.message);
+                callback({
+                    draw: data.draw,
+                    recordsTotal: 0,
+                    recordsFiltered: 0,
+                    data: []
+                });
             }
         );
     }
 
 
-    private setupSelectAllCheckbox() {
+    private addCheckboxHandling() {
+        // Handle Master Checkbox
+        this.handleMasterCheckBox();
+
+        //Handle Row Checkboxes
+        this.handleRowCheckboxes();
+    }
+
+    private handleMasterCheckBox() {
         $('#select-all-checkbox').on('click', (event: JQuery.ClickEvent) => {
             const isChecked = (event.target as HTMLInputElement).checked;
             this.isCheckAll = isChecked;
-            this.updateAllCheckboxes();
-        });
 
+            // Check/UnCheck row checkbox
+            this.projectTable.rows().every((rowIdx: number, tableLoop: any, rowLoop: any) => {
+                const node = this.projectTable.row(rowIdx).node();
+                const checkbox = $(node).find('input[type="checkbox"].chkbx').get(0) as HTMLInputElement;
+                if (checkbox) {
+                    checkbox.checked = this.isCheckAll;
+                }
+            });
+
+            // Show Selection status
+            this.showSelectionStatus();
+        });
+    }
+
+    private handleRowCheckboxes() {
         $('#myTable tbody').on('change', 'input[type="checkbox"]', () => {
-            this.updateSelectAllCheckbox();
-        });
-    }
-
-    private updateAllCheckboxes() {
-        this.projectTable.rows().every((rowIdx: number, tableLoop: any, rowLoop: any) => {
-            const node = this.projectTable.row(rowIdx).node();
-            const checkbox = $(node).find('input[type="checkbox"].chkbx').get(0) as HTMLInputElement;
-            if (checkbox) {
-                checkbox.checked = this.isCheckAll;
+            // Check the condition to CHECK the master checkbox
+            const allCheckboxes = this.projectTable.$('input[type="checkbox"].chkbx').get();
+            const allChecked = allCheckboxes.every((checkbox: HTMLInputElement) => checkbox.checked);
+            this.isCheckAll = allChecked;
+            const selectAllCheckbox = $('#select-all-checkbox').get(0) as HTMLInputElement;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = this.isCheckAll;
             }
-        });
-        this.showSelectionStatus();
-    }
 
-    private updateSelectAllCheckbox() {
-        const allCheckboxes = this.projectTable.$('input[type="checkbox"].chkbx').get();
-        const allChecked = allCheckboxes.every((checkbox: HTMLInputElement) => checkbox.checked);
-        this.isCheckAll = allChecked;
-        const selectAllCheckbox = $('#select-all-checkbox').get(0) as HTMLInputElement;
-        if (selectAllCheckbox) {
-            selectAllCheckbox.checked = this.isCheckAll;
-        }
-        this.showSelectionStatus();
+            // Show Selection status
+            this.showSelectionStatus();
+        });
     }
 
     private showSelectionStatus() {
-        const numOfCheckedCB = this.isCheckAll ? this.projects.length : this.projectTable.$('input.chkbx[type="checkbox"]:checked').length;
+        const numOfCheckedCB = this.projectTable.$('input.chkbx[type="checkbox"]:checked').length;
         $("#selection-status #selected-count").text(numOfCheckedCB.toString());
-        if (numOfCheckedCB > 0) {
+        if (numOfCheckedCB > 1) {
             $("#selection-status").show();
         } else {
             $("#selection-status").hide();
@@ -122,7 +208,6 @@ class ProjectManagement {
 
         $(".new-page").on('click', (e) => {
             e.preventDefault();
-            // Chuyển đổi object thành chuỗi JSON
 
             let pageInput: Xrm.Navigation.PageInputHtmlWebResource = {
                 pageType: "webresource",
@@ -147,12 +232,14 @@ class ProjectManagement {
     private handleDelete(event: JQuery.ClickEvent) {
         event.preventDefault();
         const projectId = $(event.target).data('projectid');
+        console.log(`Project ID to Delete: ${projectId.toString()}`);
 
         if (projectId !== "allselected") {
             this.deleteSpecificProject(projectId);
         } else {
             this.deleteSelectedProjects();
         }
+        window.location.reload()
     }
 
     private deleteSpecificProject(projectId: string) {
@@ -194,7 +281,6 @@ class ProjectManagement {
         Promise.all(projectIds.map(id => this.deleteProjectFromAPI(id)))
             .then(() => {
                 console.log(`${projectIds.length} project(s) deleted successfully`);
-                window.location.reload();
             })
             .catch(error => {
                 console.error("Error deleting project(s):", error);
@@ -217,121 +303,13 @@ class ProjectManagement {
     }
 
     private handleSearch() {
-        const searchTerm = ($('#searchfield') as JQuery<HTMLInputElement>).val()?.toString().toLowerCase() || '';
-        const statusFilter = $('.project-status').find(":selected").text();
-
-        let filter = '';
-        const filterParts = [];
-
-        if (searchTerm) {
-            const searchFilter = `(
-                                    contains(elca_projectnumber, '${searchTerm}') 
-                                or 
-                                    contains(elca_name, '${searchTerm}') 
-                                or 
-                                    contains(elca_customer, '${searchTerm}')
-                                )`;
-            filterParts.push(searchFilter);
-        }
-
-        if (statusFilter !== this.projectStatusString) {
-            const statusValue = mapStatusToNumber[statusFilter];
-            filterParts.push(`elca_projectstatus eq ${statusValue}`);
-        }
-
-        if (filterParts.length > 0) {
-            filter = `$filter=${filterParts.join(' and ')}`;
-        }
-
-        const query = `?$select=elca_projectid,elca_projectnumber,elca_name,elca_customer,elca_projectstatus,elca_startdate&${filter}`;
-
-        parent.Xrm.WebApi.retrieveMultipleRecords("elca_project", query).then(
-            (result) => {
-                const filteredProjects = result.entities.map(entity => ({
-                    elca_projectid: entity.elca_projectid,
-                    elca_projectnumber: entity.elca_projectnumber,
-                    elca_name: entity.elca_name,
-                    elca_customer: entity.elca_customer,
-                    elca_projectstatus: mapNumberToStatus[entity.elca_projectstatus.toString()],
-                    elca_startdate: new Date(entity.elca_startdate).toLocaleDateString(),
-                    elca_projectgroupid: entity.elca_projectgroupid,
-                    elca_enddate: entity.elca_enddate,
-                    ownerid: entity.ownerid,
-                    elca_members: entity.elca_members
-                }));
-                this.renderProjects(filteredProjects);
-                $("#selection-status").hide();
-                const selectAllCheckbox = $('#select-all-checkbox').get(0);
-                if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
-                    selectAllCheckbox.checked = false;
-                }
-            },
-            (error) => {
-                console.error("Error searching projects:", error.message);
-            }
-        );
+        this.projectTable.ajax.reload();
     }
 
     private resetSearch() {
         ($('#searchfield') as JQuery<HTMLInputElement>).val('');
         $('.project-status').val('');
-        $("#selection-status").hide();
-        const selectAllCheckbox = $('#select-all-checkbox').get(0);
-        if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
-            selectAllCheckbox.checked = false;
-        }
-        this.renderProjects(this.projects);
-    }
-
-    private renderProjects(projectsToRender: Project[] = this.projects) {
-        const projectsData = projectsToRender.map((project: Project) => ({
-            elca_projectnumber: `<a href="#" class="project-link" data-projectid="${project.elca_projectid}">${project.elca_projectnumber}</a>`,
-            elca_name: project.elca_name || '',
-            elca_projectstatus: project.elca_projectstatus,
-            elca_customer: project.elca_customer || '',
-            elca_startdate: project.elca_startdate || '',
-            elca_projectid: project.elca_projectid,
-        }));
-
-        console.log("Projects data to render:", projectsData);
-
-        if ($.fn.DataTable.isDataTable('#myTable')) {
-            this.projectTable.clear().rows.add(projectsData).draw();
-        } else {
-            this.projectTable = new DataTable("#myTable", {
-                data: projectsData,
-                columns: [
-                    {
-                        data: null,
-                        title: '<input type="checkbox" id="select-all-checkbox">',
-                        defaultContent: '<input type="checkbox" class="chkbx">',
-                        orderable: false
-                    },
-                    { data: 'elca_projectnumber', title: 'Number' },
-                    { data: 'elca_name', title: 'Name' },
-                    { data: 'elca_projectstatus', title: 'Status' },
-                    { data: 'elca_customer', title: 'Customer' },
-                    { data: 'elca_startdate', title: 'Start Date' },
-                    {
-                        title: 'Delete',
-                        render: function (data, type, row) {
-                            if (row.elca_projectstatus === 'New')
-                                return `<img src="./elca_garbageicon" alt="Delete" class="delete-icon" data-projectid="${row.elca_projectid}">`;
-                            return '';
-                        }
-                    }
-                ],
-                order: [[1, 'asc']],
-                pageLength: 20,
-                lengthChange: false,
-                searching: false,
-                info: false,
-                pagingType: "simple_numbers"
-            });
-        }
-        this.setupSelectAllCheckbox();
-        this.initialSelectionStatus();
-        this.updateAllCheckboxes();
+        this.projectTable.search('').order([1, 'asc']).page.len(20).draw();
     }
 
     private initialSelectionStatus() {
@@ -344,7 +322,6 @@ class ProjectManagement {
                 <span id="delete-text">delete selected items <img src="./elca_garbageicon" alt="Delete" class="delete-icon" data-projectid="allselected"></span>
             </div>
             `);
-
             $("#selection-status").hide();
         }
     }
