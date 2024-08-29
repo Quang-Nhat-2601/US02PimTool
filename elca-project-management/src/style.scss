@@ -12,6 +12,8 @@
 .container {
     width: 90%;
     margin: 0 auto;
+    margin-bottom: 6%;
+    padding-top: 65px;
 
     color: $text-color;
 
@@ -30,7 +32,7 @@
                 margin-top: 44px;
             }
 
-            ul li:first-child .new-page{
+            ul li:first-child .new-page {
                 color: $primary-text-color;
                 font-size: 20px;
             }
@@ -87,7 +89,7 @@
                     background-color: #fff;
                 }
 
-                .project-status option{
+                .project-status option {
                     background-color: #fff;
                 }
 

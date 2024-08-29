@@ -2,40 +2,14 @@ import './style.scss';
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-responsive-dt';
 import $ from 'jquery';
-
-interface Project {
-    elca_projectid: string;
-    elca_projectnumber: string;
-    elca_name: string;
-    elca_customer: string;
-    elca_projectgroupid: string;
-    elca_projectstatus: string;
-    elca_startdate: string;
-    elca_enddate: string;
-    ownerid: string;
-    elca_members: string;
-}
+import { Project } from './interfaces';
+import { mapNumberToStatus, mapStatusToNumber, formatDate } from './utils';
 
 class ProjectManagement {
     private projects: Project[] = [];
     private projectTable: any;
     private projectStatusString: string = "Project Status";
-    private mapStatusToNumber: { [name: string]: string } = {
-        "New": "283630000",
-        "Planned": "283630001",
-        "In Progress": "283630002",
-        "Finished": "283630003",
-        "Closed": "283630004"
-    };
-
-    private mapNumberToStatus: { [name: string]: string } = {
-        "283630000": "New",
-        "283630001": "Planned",
-        "283630002": "In Progress",
-        "283630003": "Finished",
-        "283630004": "Closed"
-    };
-
+    private isCheckAll: boolean = false;
 
     constructor() {
         this.loadProjects();
@@ -43,8 +17,6 @@ class ProjectManagement {
     }
 
     private loadProjects() {
-        console.log("Start load project...")
-
         const fetchXml = `?fetchXml=<fetch mapping='logical'>
             <entity name='elca_project'>
             <attribute name='elca_projectid' />
@@ -57,20 +29,18 @@ class ProjectManagement {
 
         parent.Xrm.WebApi.retrieveMultipleRecords("elca_project", fetchXml).then(
             (result) => {
-                console.log("API Response:", result);
                 this.projects = result.entities.map(entity => ({
                     elca_projectid: entity.elca_projectid,
                     elca_projectnumber: entity.elca_projectnumber,
                     elca_name: entity.elca_name,
                     elca_customer: entity.elca_customer,
-                    elca_projectstatus: this.mapNumberToStatus[entity.elca_projectstatus.toString()],
-                    elca_startdate: new Date(entity.elca_startdate).toLocaleDateString(),
+                    elca_projectstatus: mapNumberToStatus[entity.elca_projectstatus.toString()],
+                    elca_startdate: formatDate(entity.elca_startdate),
                     elca_projectgroupid: entity.elca_projectgroupid,
                     elca_enddate: entity.elca_enddate,
                     ownerid: entity.ownerid,
                     elca_members: entity.elca_members
                 }));
-                console.log(`Loaded ${this.projects.length} projects:`, this.projects);
                 this.renderProjects();
             },
             (error) => {
@@ -79,44 +49,45 @@ class ProjectManagement {
         );
     }
 
+
     private setupSelectAllCheckbox() {
-        const table = this.projectTable;
-
-        // Handle click on "Select all" checkbox
-        $('#select-all-checkbox').on('click', function (this: HTMLInputElement) {
-            const isChecked = this.checked;
-
-            $('.chkbx').prop('checked', isChecked);
-
-            $(this).trigger('blur');
+        $('#select-all-checkbox').on('click', (event: JQuery.ClickEvent) => {
+            const isChecked = (event.target as HTMLInputElement).checked;
+            this.isCheckAll = isChecked;
+            this.updateAllCheckboxes();
         });
 
-        $('#myTable tbody').on('change', 'input[type="checkbox"]', function (this: HTMLInputElement) {
-            // If any checkbox is unchecked, uncheck "Select all" checkbox
-            if (!this.checked) {
-                const selectAllCheckbox = $('#select-all-checkbox').get(0);
-                if (selectAllCheckbox instanceof HTMLInputElement && selectAllCheckbox.checked) {
-                    selectAllCheckbox.checked = false;
-                }
-            } else {
-                // If all checkboxes are checked, check "Select all" checkbox
-                const allCheckboxes = table.$('input[type="checkbox"]').get();
-                const allChecked = allCheckboxes.every((checkbox: { checked: any; }) =>
-                    checkbox instanceof HTMLInputElement && checkbox.checked
-                );
-                const selectAllCheckbox = $('#select-all-checkbox').get(0);
-                if (selectAllCheckbox instanceof HTMLInputElement) {
-                    selectAllCheckbox.checked = allChecked;
-                }
-            }
+        $('#myTable tbody').on('change', 'input[type="checkbox"]', () => {
+            this.updateSelectAllCheckbox();
         });
     }
 
-    private showSelectionStatus() {
-        const numOfCheckedCB: number = $('input.chkbx[type="checkbox"]:checked').length;
+    private updateAllCheckboxes() {
+        this.projectTable.rows().every((rowIdx: number, tableLoop: any, rowLoop: any) => {
+            const node = this.projectTable.row(rowIdx).node();
+            const checkbox = $(node).find('input[type="checkbox"].chkbx').get(0) as HTMLInputElement;
+            if (checkbox) {
+                checkbox.checked = this.isCheckAll;
+            }
+        });
+        this.showSelectionStatus();
+    }
 
+    private updateSelectAllCheckbox() {
+        const allCheckboxes = this.projectTable.$('input[type="checkbox"].chkbx').get();
+        const allChecked = allCheckboxes.every((checkbox: HTMLInputElement) => checkbox.checked);
+        this.isCheckAll = allChecked;
+        const selectAllCheckbox = $('#select-all-checkbox').get(0) as HTMLInputElement;
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = this.isCheckAll;
+        }
+        this.showSelectionStatus();
+    }
+
+    private showSelectionStatus() {
+        const numOfCheckedCB = this.isCheckAll ? this.projects.length : this.projectTable.$('input.chkbx[type="checkbox"]:checked').length;
         $("#selection-status #selected-count").text(numOfCheckedCB.toString());
-        if (numOfCheckedCB > 1) {
+        if (numOfCheckedCB > 0) {
             $("#selection-status").show();
         } else {
             $("#selection-status").hide();
@@ -134,8 +105,8 @@ class ProjectManagement {
         $('#myTable').on('click', '.project-link', (e) => {
             const projectId = $(e.target).data('projectid');
             const entityName = "elca_project";
-            e.preventDefault();            
-            var entityFormOptions : Xrm.Navigation.EntityFormOptions = {};
+            e.preventDefault();
+            var entityFormOptions: Xrm.Navigation.EntityFormOptions = {};
             entityFormOptions["entityName"] = entityName;
             entityFormOptions["entityId"] = projectId;
 
@@ -153,12 +124,12 @@ class ProjectManagement {
             e.preventDefault();
             // Chuyển đổi object thành chuỗi JSON
 
-            let pageInput:Xrm.Navigation.PageInputHtmlWebResource = {
+            let pageInput: Xrm.Navigation.PageInputHtmlWebResource = {
                 pageType: "webresource",
                 webresourceName: "elca_projectformpage"
             };
 
-            var navigationOptions :Xrm.Navigation.NavigationOptions= {
+            var navigationOptions: Xrm.Navigation.NavigationOptions = {
                 target: 1,
             };
 
@@ -197,13 +168,17 @@ class ProjectManagement {
     }
 
     private deleteSelectedProjects() {
-        const selectedRows = this.projectTable.rows().nodes().filter((node: Node) => {
-            return $(node).find('input[type="checkbox"].chkbx').is(':checked');
-        });
-
-        const selectedProjectIds = selectedRows.map((node: Node) => {
-            return this.projectTable.row(node).data().elca_projectid;
-        }).toArray();
+        let selectedProjectIds: string[];
+        if (this.isCheckAll) {
+            selectedProjectIds = this.projects.map(project => project.elca_projectid);
+        } else {
+            const selectedRows = this.projectTable.rows().nodes().filter((node: Node) => {
+                return $(node).find('input[type="checkbox"].chkbx').is(':checked');
+            });
+            selectedProjectIds = selectedRows.map((node: Node) => {
+                return this.projectTable.row(node).data().elca_projectid;
+            }).toArray();
+        }
 
         if (selectedProjectIds.length > 0) {
             const confirmMessage = `Are you sure you want to delete ${selectedProjectIds.length} selected project(s)?`;
@@ -223,7 +198,6 @@ class ProjectManagement {
             })
             .catch(error => {
                 console.error("Error deleting project(s):", error);
-                alert("Project does not exist");
             });
     }
 
@@ -261,7 +235,7 @@ class ProjectManagement {
         }
 
         if (statusFilter !== this.projectStatusString) {
-            const statusValue = this.mapStatusToNumber[statusFilter];
+            const statusValue = mapStatusToNumber[statusFilter];
             filterParts.push(`elca_projectstatus eq ${statusValue}`);
         }
 
@@ -278,7 +252,7 @@ class ProjectManagement {
                     elca_projectnumber: entity.elca_projectnumber,
                     elca_name: entity.elca_name,
                     elca_customer: entity.elca_customer,
-                    elca_projectstatus: this.mapNumberToStatus[entity.elca_projectstatus.toString()],
+                    elca_projectstatus: mapNumberToStatus[entity.elca_projectstatus.toString()],
                     elca_startdate: new Date(entity.elca_startdate).toLocaleDateString(),
                     elca_projectgroupid: entity.elca_projectgroupid,
                     elca_enddate: entity.elca_enddate,
@@ -310,8 +284,6 @@ class ProjectManagement {
     }
 
     private renderProjects(projectsToRender: Project[] = this.projects) {
-        console.log("Rendering projects...");
-
         const projectsData = projectsToRender.map((project: Project) => ({
             elca_projectnumber: `<a href="#" class="project-link" data-projectid="${project.elca_projectid}">${project.elca_projectnumber}</a>`,
             elca_name: project.elca_name || '',
@@ -350,7 +322,7 @@ class ProjectManagement {
                     }
                 ],
                 order: [[1, 'asc']],
-                pageLength: 5,
+                pageLength: 20,
                 lengthChange: false,
                 searching: false,
                 info: false,
@@ -359,7 +331,7 @@ class ProjectManagement {
         }
         this.setupSelectAllCheckbox();
         this.initialSelectionStatus();
-        console.log("Projects rendered to table");
+        this.updateAllCheckboxes();
     }
 
     private initialSelectionStatus() {

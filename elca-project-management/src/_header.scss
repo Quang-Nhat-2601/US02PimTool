@@ -1,8 +1,15 @@
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%
+}
+
 .header {
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid $border-color;
-    height: 60px;
+    height: 65px;
+    align-items: center;
 
     .logo {
         display: flex;
