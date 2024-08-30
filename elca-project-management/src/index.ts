@@ -257,7 +257,7 @@ class ProjectManagement {
         }
     }
 
-    private deleteSelectedProjects() {
+    private async deleteSelectedProjects() {
         let selectedProjectIds: string[];
         if (this.isCheckAll) {
             selectedProjectIds = this.projects.map(project => project.elca_projectid);
@@ -269,30 +269,45 @@ class ProjectManagement {
                 return this.projectTable.row(node).data().elca_projectid;
             }).toArray();
         }
-
+    
         if (selectedProjectIds.length > 0) {
             const confirmMessage = `Are you sure you want to delete ${selectedProjectIds.length} selected project(s)?`;
             if (confirm(confirmMessage)) {
-                this.deleteProjects(selectedProjectIds);
+                const failedDeletions = await this.deleteProjects(selectedProjectIds);
+                if (failedDeletions.length > 0) {
+                    alert(`Failed to delete the following project(s): ${failedDeletions.join(', ')}`);
+                } else {
+                    alert('All selected projects were deleted successfully.');
+                }
             }
         } else {
             alert('No projects selected for deletion.');
         }
     }
-
-    private deleteProjects(projectIds: string[]) {
-        Promise.all(projectIds.map(id => this.deleteProjectFromAPI(id)))
-            .then(() => {
-                console.log(`${projectIds.length} project(s) deleted successfully`);
-                this.removeDeletedProjectsFromTable(projectIds);
-                this.projectTable.draw(true); // Redraw the table without changing the current page
-                $("#selection-status").hide();
-            })
-            .catch(error => {
-                console.error("Error deleting project(s):", error);
-            });
+    
+    private async deleteProjects(projectIds: string[]): Promise<string[]> {
+        const failedDeletions: string[] = [];
+    
+        await Promise.all(projectIds.map(async (id) => {
+            try {
+                await this.deleteProjectFromAPI(id);
+                console.log(`Project ${id} deleted successfully`);
+            } catch (error) {
+                console.error(`Error deleting project ${id}:`, error);
+                failedDeletions.push(id);
+            }
+        }));
+    
+        const successfulDeletions = projectIds.length - failedDeletions.length;
+        console.log(`${successfulDeletions} project(s) deleted successfully`);
+    
+        this.removeDeletedProjectsFromTable(projectIds.filter(id => !failedDeletions.includes(id)));
+        this.projectTable.draw(true);
+        $("#selection-status").hide();
+    
+        return failedDeletions;
     }
-
+    
     private deleteProjectFromAPI(projectId: string): Promise<void> {
         return new Promise((resolve, reject) => {
             parent.Xrm.WebApi.deleteRecord("elca_project", projectId).then(
