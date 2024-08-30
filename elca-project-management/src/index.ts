@@ -25,15 +25,15 @@ class ProjectManagement {
             columns: [
                 {
                     data: null,
-                    title: '<input type="checkbox" id="select-all-checkbox">',
+                    // title: '<input type="checkbox" id="select-all-checkbox">',
                     defaultContent: '<input type="checkbox" class="chkbx">',
                     orderable: false
                 },
-                { data: 'elca_projectnumber', title: 'Number' },
-                { data: 'elca_name', title: 'Name' },
-                { data: 'elca_projectstatus', title: 'Status' },
-                { data: 'elca_customer', title: 'Customer' },
-                { data: 'elca_startdate', title: 'Start Date' },
+                { data: 'elca_projectnumber' },
+                { data: 'elca_name' },
+                { data: 'elca_projectstatus'},
+                { data: 'elca_customer' },
+                { data: 'elca_startdate' },
                 {
                     title: 'Delete',
                     render: (data, type, row) => {
@@ -113,6 +113,9 @@ class ProjectManagement {
                 this.addCheckboxHandling();
 
                 this.initialSelectionStatus();
+
+                const checkbox = $("#select-all-checkbox").get(0) as HTMLInputElement;
+                checkbox.checked = false ;
             },
             (error) => {
                 console.error("Error loading projects:", error.message);
@@ -195,6 +198,7 @@ class ProjectManagement {
             var entityFormOptions: Xrm.Navigation.EntityFormOptions = {};
             entityFormOptions["entityName"] = entityName;
             entityFormOptions["entityId"] = projectId;
+            entityFormOptions["openInNewWindow"] = true;
 
             // Open the form.
             parent.Xrm.Navigation.openForm(entityFormOptions).then(
@@ -281,8 +285,8 @@ class ProjectManagement {
             .then(() => {
                 console.log(`${projectIds.length} project(s) deleted successfully`);
                 this.removeDeletedProjectsFromTable(projectIds);
-                this.projectTable.draw(false); // Redraw the table without changing the current page
-                this.showSelectionStatus(); // Update selection status
+                this.projectTable.draw(true); // Redraw the table without changing the current page
+                $("#selection-status").hide();
             })
             .catch(error => {
                 console.error("Error deleting project(s):", error);
